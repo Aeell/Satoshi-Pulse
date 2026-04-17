@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: satoshi_pulse_timescaledb
+    environment:
+      POSTGRES_DB: satoshi_pulse
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: satoshi_pulse_api
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_NAME=satoshi_pulse
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    ports:
+      - "8000:8000"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: satoshi_pulse_scheduler
+    command: python -m src.scheduler
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_NAME=satoshi_pulse
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: satoshi_pulse_dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://api:8000
+    depends_on:
+      - api
+
+  freqtrade:
+    image: freqtradeorg/freqtrade:stable
+    container_name: satoshi_pulse_freqtrade
+    volumes:
+      - ./freqtrade:/freqtrade/user_data
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - FC_DRY_RUN=true
+      - DB_URI=sqlite:///freqtrade/user_data/tradedb.sqlite
+    depends_on:
+      - api
+    networks:
+      - satoshi_network
+
+  # Redis for caching and future Celery (optional)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: satoshi_pulse_redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+
+networks:
+  satoshi_network:
+    driver: bridge
+
+volumes:
+  timescaledb_data:
+  # redis_data:

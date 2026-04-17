@@ -1,249 +1,252 @@
-# Satoshi Pulse - Bitcoin Market Analyzer
+# Satoshi Pulse v2
 
-Pokročilý nástroj pro analýzu Bitcoin trhu využívající reálná data z burz přes CCXT a agregovaná data z Yahoo Finance.
+Full-stack crypto analysis platform that collects market, on-chain, DeFi, and
+derivatives data from **free public APIs**, runs technical and composite
+analysis, generates trading signals, and exposes everything through a FastAPI
+backend and React dashboard.
 
-## Co Nástroj Dělá
-
-- Stahuje 5 let Bitcoin cenových dat z Yahoo Finance (agregovaný základ)
-- Sbírá reálná data z 9+ burzí přes CCXT (zdarma, bez API klíčů)
-- Automaticky stahuje data o velrybích transakcích (pokud nejsou přítomna)
-- Generuje čisté CSV soubory a grafy čitelné AI
-
-## Zdroje Dat (Vše Zdarma - Žádné API Klíče Nevyžaduje)
-
-| Zdroj | Typ | Pokrytí |
-|--------|------|---------|
-| Yahoo Finance | Agregovaná | 1825 dní |
-| Binance | Reálná burza | 1000 dní |
-| KuCoin | Reálná burza | 1500 dní |
-| Bybit | Reálná burza | 1000 dní |
-| Bitstamp | Reálná burza | 1000 dní |
-| Gate.io | Reálná burza | 999 dní |
-| Coinbase | Reálná burza | 300 dní |
-| OKX | Reálná burza | 300 dní |
-| Crypto.com | Reálná burza | 300 dní |
-
-## Rychlý Start (Čerstvý Windows)
-
-### 1. Nainstaluj Python
-
-Stáhni z: https://www.python.org/downloads/
-
-**Nebo přes PowerShell (administrátor):**
-```powershell
-winget install Python.Python.3.12
-```
-
-### 2. Nainstaluj Závislosti
-
-Otevři terminál ve složce projektu:
-```powershell
-pip install pandas yfinance matplotlib ccxt requests
-```
-
-### 3. Spusť Analyzátor
-
-```powershell
-python bitcoin_exchange_analyzer.py
-```
-
-## Výstupní Soubory
-
-Generováno v `bitcoin_5year_data/`:
-
-```
-bitcoin_5year_data/
-├── yahoo_finance_aggregate.csv    # Agregovaný základ
-├── exchange_specific_data.csv # CCXT reálná data
-├── exchange_summary.csv      # Statistiky burz
-├── bitcoin_whales.csv     # Velrybí transakce
-├── daily_whale_summary.csv
-├── significant_price_events.csv
-├── analysis_report.txt
-└── bitcoin_5year_chart.png
-```
-
-## Struktura Projektu
-
-```
-Satoshi-Pulse/
-├── bitcoin_exchange_analyzer.py  # Hlavní skript
-├── README.md                  # Tento soubor
-├── AGENTS.md                 # Průvodce vývojáře
-├── .gitignore
-└── bitcoin_5year_data/      # Vygenerováno po spuštění
-```
-
-## Požadavky
-
-- Python 3.8+
-- pandas
-- yfinance
-- matplotlib
-- ccxt
-- requests
-
-Nainstaluj vše: `pip install pandas yfinance matplotlib ccxt requests`
-
-## Řešení Problémů
-
-### "gh není rozpoznán"
-GitHub CLI není nainstalován. Stáhni z: https://cli.github.com/
-
-### Rate Limited
-CCXT má vestavěné rate limiting. Počkej několik minut a zkus znovu.
-
-### Selhání Stažení Velrybích Dat
-Velrybí archiv (~200MB) se stahuje automaticky. Pokud selže, stáhni manuálně z:
-https://cdn.whale-alert.com/v1/archives/bitcoin.json.gzip
-Ulož do: `bitcoin_whale_data/whale-alerts-archive.json.gzip`
-
-## Pro Spolupracovníky
-
-1. Klonuj repozitář:
-```bash
-git clone https://github.com/Aeell/Satoshi-Pulse.git
-cd Satoshi-Pulse
-```
-
-2. Nainstaluj závislosti:
-```bash
-pip install pandas yfinance matplotlib ccxt requests
-```
-
-3. Spusť:
-```bash
-python bitcoin_exchange_analyzer.py
-```
-
-4. Zkontroluj `bitcoin_5year_data/` pro výstupní soubory
-
-## Licence
-
-MIT - Volné k použití a úpravě.
+A separate, optional Freqtrade integration can consume those signals — but is
+**not wired up by default**.
 
 ---
 
-# Satoshi Pulse - Bitcoin Market Analyzer (English)
-
-Advanced Bitcoin market analysis tool using real exchange data via CCXT and aggregated Yahoo Finance data.
-
-## What It Does
-
-- Fetches 5 years of Bitcoin price data from Yahoo Finance (aggregate baseline)
-- Fetches real exchange-specific data from 9+ exchanges via CCXT (free public APIs)
-- Downloads whale transaction data automatically (if not present)
-- Generates clean, AI-readable CSV files and charts
-
-## Data Sources (All Free - No API Keys Needed)
-
-| Source | Type | Coverage |
-|--------|------|---------|
-| Yahoo Finance | Aggregate | 1825 days |
-| Binance | Real exchange | 1000 days |
-| KuCoin | Real exchange | 1500 days |
-| Bybit | Real exchange | 1000 days |
-| Bitstamp | Real exchange | 1000 days |
-| Gate.io | Real exchange | 999 days |
-| Coinbase | Real exchange | 300 days |
-| OKX | Real exchange | 300 days |
-| Crypto.com | Real exchange | 300 days |
-
-## Quick Start (Fresh Windows Machine)
-
-### 1. Install Python
-
-Download from: https://www.python.org/downloads/
-
-**Or via PowerShell (admin):**
-```powershell
-winget install Python.Python.3.12
-```
-
-### 2. Install Dependencies
-
-Open terminal/command prompt in this folder:
-```powershell
-pip install pandas yfinance matplotlib ccxt requests
-```
-
-### 3. Run the Analyzer
-
-```powershell
-python bitcoin_exchange_analyzer.py
-```
-
-## Output Files
-
-Generated in `bitcoin_5year_data/`:
+## Architecture
 
 ```
-bitcoin_5year_data/
-├── yahoo_finance_aggregate.csv    # Aggregate baseline
-├── exchange_specific_data.csv # CCXT real data
-├── exchange_summary.csv      # Exchange stats
-├── bitcoin_whales.csv     # Whale transactions
-├── daily_whale_summary.csv
-├── significant_price_events.csv
-├── analysis_report.txt
-└── bitcoin_5year_chart.png
+┌─────────────────────────────────────────────────────────┐
+│                     Satoshi Pulse v2                    │
+│                                                         │
+│  ┌─────────────┐   ┌─────────────┐   ┌──────────────┐  │
+│  │  Collectors  │──▶│    SQLite   │──▶│   Analysis   │  │
+│  │  (scheduler) │   │ /Postgres   │   │   Engine     │  │
+│  └─────────────┘   └─────────────┘   └──────┬───────┘  │
+│                                              │          │
+│  ┌──────────────────────────────────────────▼───────┐  │
+│  │              FastAPI  (port 8000)                 │  │
+│  │   /api/dashboard  /api/signals  /api/status      │  │
+│  └──────────────────────────────────────────────────┘  │
+│                           │                             │
+│  ┌────────────────────────▼────────────────────────┐   │
+│  │           React Dashboard  (port 3000)          │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Freqtrade (ISOLATED — not wired by default)     │  │
+│  └──────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Project Structure
+### Data sources (all free, no paid subscription)
 
-```
-Satoshi-Pulse/
-├── bitcoin_exchange_analyzer.py  # Main script
-├── README.md                  # This file
-├── AGENTS.md                 # Developer guide
-├── .gitignore
-└── bitcoin_5year_data/      # Generated on run
-```
+| Collector | API | What it collects |
+|-----------|-----|-----------------|
+| CoinGecko | api.coingecko.com | Prices, market cap, trending |
+| CoinMarketCap | pro-api.coinmarketcap.com | Top 50 listings, global metrics |
+| CCXT | Binance / Gate.io (public) | Live tickers, OHLCV |
+| CoinMetrics Community | community-api.coinmetrics.io | Active addresses, hash rate, NVT |
+| DefiLlama | api.llama.fi | TVL, DEX volumes, stablecoins |
+| DexScreener | api.dexscreener.com | DEX pairs, liquidity |
+| Coinalyze | api.coinalyze.net | Open interest, funding, L/S ratio |
+| Fear & Greed | api.alternative.me | Fear & Greed index |
+| CryptoPanic | cryptopanic.com/api | Rising news |
+| Whale Alert | api.whale-alert.io | Large on-chain transfers |
+| Messari | api.messari.io | Asset metrics |
 
-## Requirements
+> **Glassnode is NOT used** — it requires a ~$1 000/mo subscription.
 
-- Python 3.8+
-- pandas
-- yfinance
-- matplotlib
-- ccxt
-- requests
+---
 
-Install all: `pip install pandas yfinance matplotlib ccxt requests`
+## Quick start (local, no Docker)
 
-## Troubleshooting
+### Prerequisites
 
-### "gh is not recognized"
-GitHub CLI not installed. Download from: https://cli.github.com/
+- Python 3.11+
+- `pip` or `uv`
 
-### Rate Limited
-CCXT has built-in rate limiting. Wait a few minutes and retry.
+### 1 — Clone & install
 
-### Whale Archive Download Fails
-The whale archive (~200MB) downloads automatically. If it fails, manually download from:
-https://cdn.whale-alert.com/v1/archives/bitcoin.json.gzip
-Save to: `bitcoin_whale_data/whale-alerts-archive.json.gzip`
-
-## For Collaborators
-
-1. Clone the repo:
 ```bash
 git clone https://github.com/Aeell/Satoshi-Pulse.git
 cd Satoshi-Pulse
+pip install -e ".[dev]"
 ```
 
-2. Install requirements:
+### 2 — Configure
+
 ```bash
-pip install pandas yfinance matplotlib ccxt requests
+cp .env.example .env
+# Edit .env — set DB_USE_SQLITE=true for local dev (no PostgreSQL needed)
 ```
 
-3. Run:
+Minimum required changes in `.env` for zero-key local run:
+
+```env
+DB_USE_SQLITE=true
+COLLECTOR_COINMARKETCAP_ENABLED=false   # needs API key
+COLLECTOR_COINALYZE_ENABLED=false       # needs API key
+COLLECTOR_WHALE_ALERT_ENABLED=false     # needs API key
+```
+
+### 3 — Run
+
 ```bash
-python bitcoin_exchange_analyzer.py
+# API server only
+make run-api
+
+# Scheduler (data collection) only
+make run-scheduler
+
+# Both together (SQLite, no Docker)
+make run-full
 ```
 
-4. Check `bitcoin_5year_data/` for output files
+Or without `make`:
+
+```bash
+DB_USE_SQLITE=true python -m src api
+DB_USE_SQLITE=true python -m src scheduler
+DB_USE_SQLITE=true python -m src full
+```
+
+---
+
+## Docker (full stack with TimescaleDB)
+
+```bash
+cp .env.example .env
+# edit .env — remove DB_USE_SQLITE or set it to false
+
+docker compose up -d
+```
+
+Services started:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `timescaledb` | 5432 | PostgreSQL + TimescaleDB |
+| `api` | 8000 | FastAPI backend |
+| `scheduler` | — | Data-collection daemon |
+| `dashboard` | 3000 | React frontend |
+
+---
+
+## API reference
+
+Base URL: `http://localhost:8000`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Health / version |
+| GET | `/health` | Liveness probe |
+| GET | `/api/dashboard/overview` | BTC price, fear/greed, signal count |
+| GET | `/api/dashboard/market` | Recent ticker snapshots |
+| GET | `/api/dashboard/ohlcv` | OHLCV candles (symbol, timeframe, limit) |
+| GET | `/api/dashboard/on-chain` | On-chain metrics |
+| GET | `/api/dashboard/health` | Collector health from DB |
+| GET | `/api/signals/active` | Signals from last N hours |
+| GET | `/api/signals/history` | Paginated signal history |
+| GET | `/api/signals/performance` | Aggregate stats |
+| POST | `/api/signals/` | Inject a signal manually |
+| GET | `/api/status/collectors` | Per-collector DB status |
+| GET | `/api/status/database` | DB connectivity + size |
+| GET | `/api/status/system` | Uptime, version, PID |
+
+Interactive docs: `http://localhost:8000/docs`
+
+---
+
+## React Dashboard
+
+```bash
+cd dashboard
+npm install
+npm run dev        # http://localhost:3000
+```
+
+Pages:
+
+- **Dashboard** — Market overview, fear/greed gauge
+- **Market Data** — Live tickers, OHLCV charts
+- **On-Chain** — CoinMetrics data visualisation
+- **Signals** — Active & historical trading signals
+- **Settings** — Collector toggles, API keys
+
+---
+
+## Running tests
+
+```bash
+make test
+# or
+pytest tests/ -v
+```
+
+---
+
+## Project layout
+
+```
+Satoshi-Pulse/
+├── src/
+│   ├── __main__.py                # Entry point (api | scheduler | full)
+│   ├── config/settings.py         # Pydantic settings (all from .env)
+│   ├── collectors/
+│   │   ├── base.py                # Abstract base, rate-limit, retry
+│   │   ├── market_data.py         # CoinGecko, CoinMarketCap, CCXT
+│   │   ├── on_chain.py            # CoinMetrics, Santiment
+│   │   ├── defi.py                # DefiLlama, DexScreener
+│   │   └── derivatives.py        # Coinalyze, FearGreed, CryptoPanic, WhaleAlert
+│   ├── scheduler/scheduler.py     # Async scheduler — collect → DB
+│   ├── storage/
+│   │   ├── models.py              # SQLAlchemy 2.0 ORM models
+│   │   ├── database.py            # Async engine, SQLite/Postgres
+│   │   ├── writer.py              # DataFrame → DB writer
+│   │   └── processing.py         # Validation helpers
+│   ├── analysis/
+│   │   ├── technical.py           # 40+ indicators (pandas-ta)
+│   │   ├── signal_generator.py    # Composite signals
+│   │   └── feature_engine.py      # Feature engineering
+│   ├── api/
+│   │   ├── main.py                # FastAPI app + lifespan
+│   │   ├── websocket.py           # Real-time WS manager
+│   │   └── routes/                # dashboard, signals, status
+│   └── freqtrade_integration/     # ISOLATED — not wired by default
+│       ├── signal_bridge.py
+│       ├── strategy.py
+│       └── config.py
+├── dashboard/                     # React + Vite + TypeScript + Tremor
+├── tests/test_core.py
+├── docker-compose.yml
+├── Dockerfile
+├── Makefile
+├── pyproject.toml
+└── .env.example
+```
+
+---
+
+## Adding a new collector
+
+1. Create `src/collectors/my_source.py` extending `CollectorBase`
+2. Implement `_fetch()` (returns raw JSON dict) and `_transform()` (returns DataFrame)
+3. Add instance in `src/scheduler/scheduler.py` → `_build_collectors()`
+4. Add a DB writer route in `src/storage/writer.py` → `_route()`
+5. Add enable/interval settings in `src/config/settings.py`
+
+---
+
+## Freqtrade integration (future)
+
+The `src/freqtrade_integration/` module is **isolated and not wired**.  
+When ready:
+
+1. Install Freqtrade separately (own virtualenv)
+2. Configure `FREQTRADE_*` variables in `.env`
+3. Uncomment the `freqtrade` service in `docker-compose.yml`
+4. The `signal_bridge.py` polls `/api/signals/active` and pushes to Freqtrade
+
+---
 
 ## License
 
-MIT - Free to use and modify.
+MIT — free to use and modify.
