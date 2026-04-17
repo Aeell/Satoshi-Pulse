@@ -1,12 +1,10 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     JSON,
     BigInteger,
     Boolean,
     DateTime,
-    Float,
     ForeignKey,
     Index,
     Integer,
@@ -16,7 +14,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
@@ -50,11 +48,11 @@ class TickerSnapshot(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
     exchange: Mapped[str] = mapped_column(String(50), nullable=False)
-    bid: Mapped[Optional[float]] = mapped_column(Numeric(20, 8))
-    ask: Mapped[Optional[float]] = mapped_column(Numeric(20, 8))
-    last: Mapped[Optional[float]] = mapped_column(Numeric(20, 8))
-    volume_24h: Mapped[Optional[float]] = mapped_column(Numeric(30, 8))
-    change_24h: Mapped[Optional[float]] = mapped_column(Numeric(10, 4))
+    bid: Mapped[float | None] = mapped_column(Numeric(20, 8))
+    ask: Mapped[float | None] = mapped_column(Numeric(20, 8))
+    last: Mapped[float | None] = mapped_column(Numeric(20, 8))
+    volume_24h: Mapped[float | None] = mapped_column(Numeric(30, 8))
+    change_24h: Mapped[float | None] = mapped_column(Numeric(10, 4))
 
     __table_args__ = (UniqueConstraint("timestamp", "symbol", "exchange", name="uq_ticker"),)
 
@@ -65,11 +63,11 @@ class CoinMetric(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
-    market_cap: Mapped[Optional[float]] = mapped_column(Numeric(30, 2))
-    fdv: Mapped[Optional[float]] = mapped_column(Numeric(30, 2))
-    circulating_supply: Mapped[Optional[float]] = mapped_column(Numeric(30, 2))
-    volume: Mapped[Optional[float]] = mapped_column(Numeric(30, 2))
-    rank: Mapped[Optional[int]] = mapped_column(Integer)
+    market_cap: Mapped[float | None] = mapped_column(Numeric(30, 2))
+    fdv: Mapped[float | None] = mapped_column(Numeric(30, 2))
+    circulating_supply: Mapped[float | None] = mapped_column(Numeric(30, 2))
+    volume: Mapped[float | None] = mapped_column(Numeric(30, 2))
+    rank: Mapped[int | None] = mapped_column(Integer)
 
     __table_args__ = (UniqueConstraint("timestamp", "symbol", name="uq_coin_metric"),)
 
@@ -149,7 +147,7 @@ class OpenInterest(Base):
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
     exchange: Mapped[str] = mapped_column(String(50), nullable=False)
     oi_value: Mapped[float] = mapped_column(Numeric(30, 2), nullable=False)
-    oi_change: Mapped[Optional[float]] = mapped_column(Numeric(10, 4))
+    oi_change: Mapped[float | None] = mapped_column(Numeric(10, 4))
 
     __table_args__ = (UniqueConstraint("timestamp", "symbol", "exchange", name="uq_oi"),)
 
@@ -162,7 +160,7 @@ class FundingRate(Base):
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
     exchange: Mapped[str] = mapped_column(String(50), nullable=False)
     rate: Mapped[float] = mapped_column(Numeric(12, 8), nullable=False)
-    predicted_rate: Mapped[Optional[float]] = mapped_column(Numeric(12, 8))
+    predicted_rate: Mapped[float | None] = mapped_column(Numeric(12, 8))
 
     __table_args__ = (UniqueConstraint("timestamp", "symbol", "exchange", name="uq_fund"),)
 
@@ -187,8 +185,8 @@ class LongShortRatio(Base):
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
     exchange: Mapped[str] = mapped_column(String(50))
     ratio: Mapped[float] = mapped_column(Numeric(10, 4), nullable=False)
-    long_pct: Mapped[Optional[float]] = mapped_column(Numeric(10, 4))
-    short_pct: Mapped[Optional[float]] = mapped_column(Numeric(10, 4))
+    long_pct: Mapped[float | None] = mapped_column(Numeric(10, 4))
+    short_pct: Mapped[float | None] = mapped_column(Numeric(10, 4))
 
     __table_args__ = (UniqueConstraint("timestamp", "symbol", "exchange", name="uq_ls"),)
 
@@ -209,9 +207,9 @@ class SocialMetric(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
     platform: Mapped[str] = mapped_column(String(50))
-    mentions: Mapped[Optional[int]] = mapped_column(Integer)
-    sentiment_score: Mapped[Optional[float]] = mapped_column(Numeric(10, 4))
-    volume: Mapped[Optional[float]] = mapped_column(Numeric(30, 2))
+    mentions: Mapped[int | None] = mapped_column(Integer)
+    sentiment_score: Mapped[float | None] = mapped_column(Numeric(10, 4))
+    volume: Mapped[float | None] = mapped_column(Numeric(30, 2))
 
     __table_args__ = (UniqueConstraint("timestamp", "symbol", "platform", name="uq_social"),)
 
@@ -224,8 +222,8 @@ class NewsArticle(Base):
     source: Mapped[str] = mapped_column(String(100))
     title: Mapped[str] = mapped_column(Text, nullable=False)
     url: Mapped[str] = mapped_column(Text)
-    currencies: Mapped[Optional[str]] = mapped_column(String(200))
-    sentiment_votes: Mapped[Optional[str]] = mapped_column(JSON)
+    currencies: Mapped[str | None] = mapped_column(String(200))
+    sentiment_votes: Mapped[str | None] = mapped_column(JSON)
 
 
 class TrendingWord(Base):
@@ -247,9 +245,9 @@ class WhaleTransaction(Base):
     from_addr: Mapped[str] = mapped_column(String(100))
     to_addr: Mapped[str] = mapped_column(String(100))
     amount: Mapped[float] = mapped_column(Numeric(30, 8), nullable=False)
-    usd_value: Mapped[Optional[float]] = mapped_column(Numeric(30, 2))
-    from_owner: Mapped[Optional[str]] = mapped_column(String(100))
-    to_owner: Mapped[Optional[str]] = mapped_column(String(100))
+    usd_value: Mapped[float | None] = mapped_column(Numeric(30, 2))
+    from_owner: Mapped[str | None] = mapped_column(String(100))
+    to_owner: Mapped[str | None] = mapped_column(String(100))
 
 
 class TradingSignal(Base):
@@ -261,9 +259,9 @@ class TradingSignal(Base):
     strategy: Mapped[str] = mapped_column(String(50), nullable=False)
     signal_type: Mapped[str] = mapped_column(String(20), nullable=False)
     strength: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    price_target: Mapped[Optional[float]] = mapped_column(Numeric(20, 8))
-    stop_loss: Mapped[Optional[float]] = mapped_column(Numeric(20, 8))
-    metadata_json: Mapped[Optional[str]] = mapped_column(JSON)
+    price_target: Mapped[float | None] = mapped_column(Numeric(20, 8))
+    stop_loss: Mapped[float | None] = mapped_column(Numeric(20, 8))
+    metadata_json: Mapped[str | None] = mapped_column(JSON)
     executed: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
@@ -274,8 +272,8 @@ class SignalPerformance(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     signal_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("trading_signals.id"))
     entry_price: Mapped[float] = mapped_column(Numeric(20, 8))
-    exit_price: Mapped[Optional[float]] = mapped_column(Numeric(20, 8))
-    pnl_pct: Mapped[Optional[float]] = mapped_column(Numeric(10, 4))
+    exit_price: Mapped[float | None] = mapped_column(Numeric(20, 8))
+    pnl_pct: Mapped[float | None] = mapped_column(Numeric(10, 4))
     status: Mapped[str] = mapped_column(String(20))
 
 
@@ -284,8 +282,8 @@ class CollectorStatus(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     collector_name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    last_run: Mapped[Optional[datetime]] = mapped_column(DateTime)
-    next_run: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    last_run: Mapped[datetime | None] = mapped_column(DateTime)
+    next_run: Mapped[datetime | None] = mapped_column(DateTime)
     status: Mapped[str] = mapped_column(String(20))
     error_count: Mapped[int] = mapped_column(Integer, default=0)
-    last_error: Mapped[Optional[str]] = mapped_column(Text)
+    last_error: Mapped[str | None] = mapped_column(Text)

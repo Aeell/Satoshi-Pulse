@@ -2,18 +2,17 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func, desc
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.storage.database import get_db
 from src.storage.models import (
-    CoinMetric,
+    CollectorStatus,
     FearGreed,
     OHLCVCandle,
     OnChainMetric,
     TickerSnapshot,
     TradingSignal,
-    CollectorStatus,
 )
 
 router = APIRouter()

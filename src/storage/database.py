@@ -1,6 +1,6 @@
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Database:
     def __init__(self):
         self.settings = get_settings()
-        self._engine: Optional[AsyncEngine] = None
+        self._engine: AsyncEngine | None = None
         self._session_factory = None
         self.is_sqlite = self.settings.database.use_sqlite
 

@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.analysis.signal_generator import Signal, SignalGenerator, SignalType
+from src.analysis.signal_generator import SignalType
 from src.storage.database import get_db
 from src.storage.models import TradingSignal
 
@@ -36,8 +36,8 @@ async def get_active_signals(
 @router.get("/history")
 async def get_signal_history(
     limit: int = Query(100, le=1000),
-    since: Optional[str] = None,
-    symbol: Optional[str] = None,
+    since: str | None = None,
+    symbol: str | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Paginated signal history with optional filters."""

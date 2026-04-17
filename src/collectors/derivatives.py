@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -6,7 +6,7 @@ from src.collectors.base import CollectorBase
 
 
 class CoinalyzeCollector(CollectorBase):
-    def __init__(self, api_key: Optional[str] = None, interval: int = 900):
+    def __init__(self, api_key: str | None = None, interval: int = 900):
         super().__init__(
             name="coinalyze",
             base_url="https://api.coinalyze.net/v1",
@@ -111,7 +111,7 @@ class FearGreedCollector(CollectorBase):
 
 
 class CryptoPanicCollector(CollectorBase):
-    def __init__(self, api_key: Optional[str] = None, interval: int = 3600):
+    def __init__(self, api_key: str | None = None, interval: int = 3600):
         super().__init__(
             name="cryptopanic",
             base_url="https://cryptopanic.com/api/v1",
@@ -150,7 +150,7 @@ class CryptoPanicCollector(CollectorBase):
 
 
 class WhaleAlertCollector(CollectorBase):
-    def __init__(self, api_key: Optional[str] = None, interval: int = 900):
+    def __init__(self, api_key: str | None = None, interval: int = 900):
         super().__init__(
             name="whale_alert",
             base_url="https://api.whale-alert.io/v1",
@@ -189,7 +189,7 @@ class WhaleAlertCollector(CollectorBase):
 
 
 class MessariCollector(CollectorBase):
-    def __init__(self, api_key: Optional[str] = None, interval: int = 86400):
+    def __init__(self, api_key: str | None = None, interval: int = 86400):
         super().__init__(
             name="messari",
             base_url="https://api.messari.io",

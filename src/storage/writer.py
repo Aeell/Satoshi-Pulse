@@ -8,11 +8,8 @@ re-runs never create duplicates.
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 import pandas as pd
-from sqlalchemy import text
-from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.storage.database import db
@@ -24,7 +21,6 @@ from src.storage.models import (
     NewsArticle,
     OHLCVCandle,
     OnChainMetric,
-    OpenInterest,
     TickerSnapshot,
     WhaleTransaction,
 )
@@ -265,7 +261,7 @@ def _ts(val) -> datetime:
     return datetime.now()
 
 
-def _safe_float(val) -> Optional[float]:
+def _safe_float(val) -> float | None:
     try:
         return float(val) if val is not None and str(val) not in ("nan", "None") else None
     except (TypeError, ValueError):

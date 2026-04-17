@@ -1,7 +1,6 @@
-import asyncio
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -31,7 +30,7 @@ class ConnectionManager:
         except Exception as e:
             logger.error(f"Error sending message: {e}")
 
-    async def broadcast(self, message: dict[str, Any], channel: Optional[str] = None) -> None:
+    async def broadcast(self, message: dict[str, Any], channel: str | None = None) -> None:
         if channel and channel in self.subscriptions:
             recipients = self.subscriptions[channel]
         else:

@@ -1,9 +1,10 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from typing import Any, AsyncGenerator, Optional
+from typing import Any
 
 import httpx
 import pandas as pd
@@ -16,7 +17,7 @@ class CollectorBase(ABC):
         self,
         name: str,
         base_url: str,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         rate_limit: int = 60,
         interval: int = 300,
         enabled: bool = True,
@@ -27,19 +28,19 @@ class CollectorBase(ABC):
         self.rate_limit = rate_limit
         self.interval = interval
         self.enabled = enabled
-        self._last_run: Optional[datetime] = None
-        self._next_run: Optional[datetime] = None
+        self._last_run: datetime | None = None
+        self._next_run: datetime | None = None
         self._error_count: int = 0
-        self._last_error: Optional[str] = None
+        self._last_error: str | None = None
         self._status: str = "idle"
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     @property
-    def last_run(self) -> Optional[datetime]:
+    def last_run(self) -> datetime | None:
         return self._last_run
 
     @property
-    def next_run(self) -> Optional[datetime]:
+    def next_run(self) -> datetime | None:
         return self._next_run
 
     @property
@@ -51,7 +52,7 @@ class CollectorBase(ABC):
         return self._error_count
 
     @property
-    def last_error(self) -> Optional[str]:
+    def last_error(self) -> str | None:
         return self._last_error
 
     def get_rate_limit(self) -> int:
@@ -84,7 +85,7 @@ class CollectorBase(ABC):
     async def _get(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         client = await self._get_client()
         for attempt in range(3):
@@ -114,7 +115,7 @@ class CollectorBase(ABC):
     async def _post(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         client = await self._get_client()
         response = await client.post(endpoint, json=data)

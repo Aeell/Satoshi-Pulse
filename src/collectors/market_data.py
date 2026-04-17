@@ -1,6 +1,5 @@
 import logging
-import os
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -10,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class CoinGeckoCollector(CollectorBase):
-    def __init__(self, api_key: Optional[str] = None, interval: int = 300):
+    def __init__(self, api_key: str | None = None, interval: int = 300):
         super().__init__(
             name="coingecko",
             base_url="https://api.coingecko.com/api/v3",
@@ -52,7 +51,7 @@ class CoinGeckoCollector(CollectorBase):
 
 
 class CoinMarketCapCollector(CollectorBase):
-    def __init__(self, api_key: Optional[str] = None, interval: int = 3600):
+    def __init__(self, api_key: str | None = None, interval: int = 3600):
         super().__init__(
             name="coinmarketcap",
             base_url="https://pro-api.coinmarketcap.com",
@@ -105,8 +104,8 @@ class CCXTCollector(CollectorBase):
     def __init__(
         self,
         exchange_id: str = "binance",
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
+        api_key: str | None = None,
+        api_secret: str | None = None,
         interval: int = 60,
     ):
         self.exchange_id = exchange_id

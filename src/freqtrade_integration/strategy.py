@@ -1,4 +1,3 @@
-from typing import Optional
 
 from freqtrade.strategy import IStrategy
 from pandas import DataFrame

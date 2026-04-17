@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -65,7 +65,7 @@ class SantimentCollector(CollectorBase):
     https://app.santiment.net
     """
 
-    def __init__(self, api_key: Optional[str] = None, interval: int = 21600):
+    def __init__(self, api_key: str | None = None, interval: int = 21600):
         super().__init__(
             name="santiment",
             base_url="https://api.santiment.net/graphql",

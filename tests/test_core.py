@@ -12,8 +12,6 @@ Covers:
 
 import asyncio
 from datetime import datetime
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -145,7 +143,8 @@ async def test_persist_unknown_collector():
 
 @pytest.mark.asyncio
 async def test_api_root():
-    from httpx import AsyncClient, ASGITransport
+    from httpx import ASGITransport, AsyncClient
+
     from src.api.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -158,7 +157,8 @@ async def test_api_root():
 
 @pytest.mark.asyncio
 async def test_api_health():
-    from httpx import AsyncClient, ASGITransport
+    from httpx import ASGITransport, AsyncClient
+
     from src.api.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

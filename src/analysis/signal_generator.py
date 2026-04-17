@@ -1,14 +1,10 @@
 import logging
 from datetime import datetime
-from enum import Enum
-from typing import Any, Optional
-
-import pandas as pd
-
-logger = logging.getLogger(__name__)
+from enum import StrEnum
+from typing import Any
 
 
-class SignalType(str, Enum):
+class SignalType(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
     HOLD = "HOLD"
@@ -16,7 +12,7 @@ class SignalType(str, Enum):
     CLOSE_SHORT = "CLOSE_SHORT"
 
 
-class SignalSource(str, Enum):
+class SignalSource(StrEnum):
     TECHNICAL = "technical"
     ON_CHAIN = "on_chain"
     SENTIMENT = "sentiment"
@@ -33,10 +29,10 @@ class Signal:
         strength: int,
         strategy: str,
         source: SignalSource = SignalSource.COMPOSITE,
-        price_target: Optional[float] = None,
-        stop_loss: Optional[float] = None,
+        price_target: float | None = None,
+        stop_loss: float | None = None,
         confidence: float = 0.5,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         self.timestamp = datetime.now()
         self.symbol = symbol
@@ -80,7 +76,7 @@ class SignalGenerator:
         trend: str,
         momentum: float,
         divergence: str = "none",
-    ) -> Optional[Signal]:
+    ) -> Signal | None:
         if momentum > 65 and trend == "bullish":
             signal_type = SignalType.BUY
             strength = min(5, int((momentum - 50) / 15))
@@ -119,7 +115,7 @@ class SignalGenerator:
         exchange_flow: dict,
         mvrv: dict,
         whale: dict,
-    ) -> Optional[Signal]:
+    ) -> Signal | None:
         signals = []
 
         if exchange_flow["signal"] == "bullish":
@@ -165,7 +161,7 @@ class SignalGenerator:
         self,
         fear_greed: dict,
         news: dict,
-    ) -> Optional[Signal]:
+    ) -> Signal | None:
         fg_value = fear_greed.get("value", 50)
         news_sentiment = news.get("sentiment_score", 50)
 
@@ -200,7 +196,7 @@ class SignalGenerator:
         funding: dict,
         oi_div: dict,
         ls_ratio: dict,
-    ) -> Optional[Signal]:
+    ) -> Signal | None:
         signals = []
 
         if funding["signal"] == "buy":
@@ -244,11 +240,11 @@ class SignalGenerator:
 
     def generate_composite_signal(
         self,
-        technical: Optional[Signal] = None,
-        onchain: Optional[Signal] = None,
-        sentiment: Optional[Signal] = None,
-        derivatives: Optional[Signal] = None,
-    ) -> Optional[Signal]:
+        technical: Signal | None = None,
+        onchain: Signal | None = None,
+        sentiment: Signal | None = None,
+        derivatives: Signal | None = None,
+    ) -> Signal | None:
         source_signals = [
             (SignalSource.TECHNICAL, technical),
             (SignalSource.ON_CHAIN, onchain),

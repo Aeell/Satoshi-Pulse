@@ -43,6 +43,7 @@ def main() -> None:
 async def _run_full() -> None:
     """Run both the API server and the scheduler concurrently."""
     import uvicorn
+
     from src.scheduler.scheduler import Scheduler
 
     scheduler = Scheduler()

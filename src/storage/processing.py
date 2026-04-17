@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class DataValidator:
     @staticmethod
-    def validate_timestamp(ts: Any) -> Optional[datetime]:
+    def validate_timestamp(ts: Any) -> datetime | None:
         if ts is None:
             return None
         if isinstance(ts, datetime):
@@ -29,7 +29,7 @@ class DataValidator:
         return symbol.upper().strip()
 
     @staticmethod
-    def validate_price(price: Any) -> Optional[float]:
+    def validate_price(price: Any) -> float | None:
         if price is None:
             return None
         try:
