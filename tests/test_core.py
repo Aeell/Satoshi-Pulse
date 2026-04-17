@@ -98,7 +98,8 @@ def test_signal_generator_buy():
     from src.analysis.signal_generator import SignalGenerator, SignalType
 
     gen = SignalGenerator()
-    signal = gen.generate_technical_signal(trend="bullish", rsi=35.0, macd_cross="bullish")
+    # momentum > 65 + bullish trend → BUY
+    signal = gen.generate_technical_signal(trend="bullish", momentum=70.0)
     assert signal is not None
     assert signal.signal_type == SignalType.BUY
 
@@ -107,7 +108,8 @@ def test_signal_generator_sell():
     from src.analysis.signal_generator import SignalGenerator, SignalType
 
     gen = SignalGenerator()
-    signal = gen.generate_technical_signal(trend="bearish", rsi=78.0, macd_cross="bearish")
+    # momentum < 35 + bearish trend → SELL
+    signal = gen.generate_technical_signal(trend="bearish", momentum=25.0)
     assert signal is not None
     assert signal.signal_type == SignalType.SELL
 
