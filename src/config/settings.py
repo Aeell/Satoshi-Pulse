@@ -2,16 +2,25 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Shared config — all sub-models point at the same .env file
+_ENV_FILE = ".env"
+_ENV_ENC = "utf-8"
+
 
 class DatabaseSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="DB_")
+    model_config = SettingsConfigDict(
+        env_prefix="DB_",
+        env_file=_ENV_FILE,
+        env_file_encoding=_ENV_ENC,
+        extra="ignore",
+    )
 
     host: str = "localhost"
     port: int = 5432
     name: str = "satoshi_pulse"
     user: str = "postgres"
     password: str = "postgres"
-    use_sqlite: bool = False
+    use_sqlite: bool = True  # default ON — zero-config local dev
     sqlite_path: str = "./data/satoshi_pulse.db"
 
     @property
@@ -24,7 +33,12 @@ class DatabaseSettings(BaseSettings):
 
 
 class APISettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="API_")
+    model_config = SettingsConfigDict(
+        env_prefix="API_",
+        env_file=_ENV_FILE,
+        env_file_encoding=_ENV_ENC,
+        extra="ignore",
+    )
 
     host: str = "0.0.0.0"
     port: int = 8000
@@ -34,17 +48,22 @@ class APISettings(BaseSettings):
 
 
 class CollectorSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="COLLECTOR_")
+    model_config = SettingsConfigDict(
+        env_prefix="COLLECTOR_",
+        env_file=_ENV_FILE,
+        env_file_encoding=_ENV_ENC,
+        extra="ignore",
+    )
 
     coingecko_enabled: bool = True
     coingecko_interval: int = 300
 
-    coinmarketcap_enabled: bool = True
+    coinmarketcap_enabled: bool = False  # needs API key
     coinmarketcap_interval: int = 3600
 
     ccxt_enabled: bool = True
     ccxt_interval: int = 60
-    ccxt_priority_exchanges: list[str] = ["binance", "gate"]
+    ccxt_priority_exchanges: list[str] = ["binance"]
 
     coinmetrics_enabled: bool = True
     coinmetrics_interval: int = 86400
@@ -58,24 +77,29 @@ class CollectorSettings(BaseSettings):
     dexscreener_enabled: bool = True
     dexscreener_interval: int = 300
 
-    coinalyze_enabled: bool = True
+    coinalyze_enabled: bool = False  # needs API key
     coinalyze_interval: int = 900
 
     fear_greed_enabled: bool = True
     fear_greed_interval: int = 3600
 
-    cryptopanic_enabled: bool = True
+    cryptopanic_enabled: bool = False  # needs API key
     cryptopanic_interval: int = 3600
 
-    whale_alert_enabled: bool = True
+    whale_alert_enabled: bool = False  # needs API key
     whale_alert_interval: int = 900
 
-    messari_enabled: bool = True
+    messari_enabled: bool = False  # needs API key
     messari_interval: int = 86400
 
 
 class FreqtradeSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="FREQTRADE_")
+    model_config = SettingsConfigDict(
+        env_prefix="FREQTRADE_",
+        env_file=_ENV_FILE,
+        env_file_encoding=_ENV_ENC,
+        extra="ignore",
+    )
 
     host: str = "localhost"
     port: int = 8080
@@ -83,9 +107,6 @@ class FreqtradeSettings(BaseSettings):
     api_key: str = ""
     rpc_url: str = "http://localhost:8080"
     strategy_mode: str = "webhook"
-
-    binance_enabled: bool = True
-    gate_enabled: bool = True
     dry_run: bool = True
 
     max_position_size: float = 0.02
@@ -95,7 +116,11 @@ class FreqtradeSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=_ENV_FILE,
+        env_file_encoding=_ENV_ENC,
+        extra="ignore",
+    )
 
     env: str = "development"
     debug: bool = False
