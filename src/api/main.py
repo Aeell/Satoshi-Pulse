@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.routes import dashboard, signals, status
 from src.config.settings import get_settings
 from src.storage.database import db
 
@@ -47,8 +48,6 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
-
-from src.api.routes import dashboard, signals, status
 
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(signals.router, prefix="/api/signals", tags=["Signals"])

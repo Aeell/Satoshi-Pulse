@@ -6,6 +6,12 @@ __pycache__/
 dist/
 build/
 
+# Virtual environments (any OS)
+.venv/
+.venv-linux/
+venv/
+env/
+
 # IDE
 .vscode/
 .idea/
@@ -15,6 +21,17 @@ build/
 # Cache
 .ruff_cache/
 .pytest_cache/
+
+# Node / Frontend
+node_modules/
+dashboard/node_modules/
+dashboard/dist/
+
+# SQLite DB and data (generated at runtime)
+data/
+*.db
+*.db-shm
+*.db-wal
 
 # ALL data directories - generated on run, never track
 bitcoin_5year_data/

@@ -41,8 +41,8 @@ async def persist_dataframe(collector_name: str, df: pd.DataFrame) -> int:
             rows = await _route(collector_name, df, session)
             await _update_collector_status(session, collector_name, rows)
             return rows
-    except Exception as e:
-        logger.error(f"DB write error for {collector_name}: {e}")
+    except Exception:
+        logger.exception(f"DB write error for {collector_name}")
         return 0
 
 
@@ -74,13 +74,13 @@ async def _write_ccxt(df: pd.DataFrame, exchange: str, session: AsyncSession) ->
     """Write CCXT ticker + OHLCV data."""
     written = 0
 
-    # OHLCV rows have an 'open' column
-    ohlcv = (
-        df[df.get("open", pd.Series(dtype=float)).notna()]
-        if "open" in df.columns
-        else pd.DataFrame()
-    )
-    tickers = df[~df.index.isin(ohlcv.index)] if not ohlcv.empty else df
+    # OHLCV rows have an 'open' column; use proper index-aligned filtering
+    if "open" in df.columns:
+        ohlcv = df[df["open"].notna()].copy()
+        tickers = df[df["open"].isna()].copy()
+    else:
+        ohlcv = pd.DataFrame()
+        tickers = df.copy()
 
     for _, row in ohlcv.iterrows():
         try:
@@ -254,15 +254,24 @@ async def _update_collector_status(session: AsyncSession, name: str, rows_writte
 
 
 def _ts(val) -> datetime:
+    """Convert various timestamp types to datetime; log a warning on bad input."""
     if isinstance(val, datetime):
         return val
     if isinstance(val, pd.Timestamp):
         return val.to_pydatetime()
+    if val is not None:
+        logger.warning("_ts: unexpected timestamp value %r — using now()", val)
     return datetime.now()
 
 
 def _safe_float(val) -> float | None:
+    """Coerce *val* to float; return None for NaN / missing / unconvertible values."""
+    import math
+
+    if val is None:
+        return None
     try:
-        return float(val) if val is not None and str(val) not in ("nan", "None") else None
+        f = float(val)
+        return None if math.isnan(f) or math.isinf(f) else f
     except (TypeError, ValueError):
         return None

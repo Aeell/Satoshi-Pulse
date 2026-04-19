@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
@@ -79,10 +78,10 @@ class SignalGenerator:
     ) -> Signal | None:
         if momentum > 65 and trend == "bullish":
             signal_type = SignalType.BUY
-            strength = min(5, int((momentum - 50) / 15))
+            strength = max(1, min(5, int((momentum - 50) / 15)))
         elif momentum < 35 and trend == "bearish":
             signal_type = SignalType.SELL
-            strength = min(5, int((50 - momentum) / 15))
+            strength = max(1, min(5, int((50 - momentum) / 15)))
         elif trend == "bullish":
             signal_type = SignalType.BUY
             strength = 2

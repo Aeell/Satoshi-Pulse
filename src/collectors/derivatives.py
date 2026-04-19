@@ -90,7 +90,7 @@ class FearGreedCollector(CollectorBase):
         )
 
     async def _fetch(self) -> dict[str, Any]:
-        async with self._get_client() as client:
+        async with self._session() as client:
             response = await client.get("/fng/?limit=1")
             return response.json()
 
@@ -125,7 +125,7 @@ class CryptoPanicCollector(CollectorBase):
         if self.api_key:
             params["auth_token"] = self.api_key
 
-        async with self._get_client() as client:
+        async with self._session() as client:
             response = await client.get("/posts/", params=params)
             return response.json()
 
@@ -161,7 +161,7 @@ class WhaleAlertCollector(CollectorBase):
 
     async def _fetch(self) -> dict[str, Any]:
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
-        async with self._get_client() as client:
+        async with self._session() as client:
             response = await client.get(
                 "/transactions", params={"min_value": 500000}, headers=headers
             )
@@ -201,7 +201,7 @@ class MessariCollector(CollectorBase):
     async def _fetch(self) -> dict[str, Any]:
         data = {}
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
-        async with self._get_client() as client:
+        async with self._session() as client:
             try:
                 symbols = ["BTC", "ETH", "SOL"]
                 for symbol in symbols:

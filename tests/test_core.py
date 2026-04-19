@@ -57,7 +57,7 @@ class _DummyCollector:
 
 
 def test_dummy_collector_sync():
-    df = asyncio.get_event_loop().run_until_complete(_DummyCollector().collect())
+    df = asyncio.run(_DummyCollector().collect())
     assert not df.empty
     assert "value" in df.columns
 
@@ -113,7 +113,7 @@ def test_signal_generator_sell():
 
 
 # ---------------------------------------------------------------------------
-# Storage writer routing
+# Storage writer helpers — regression tests
 # ---------------------------------------------------------------------------
 
 
@@ -134,6 +134,45 @@ async def test_persist_unknown_collector():
     df = pd.DataFrame([{"timestamp": datetime.now(), "x": 1}])
     rows = await persist_dataframe("totally_unknown_collector", df)
     assert rows == 0
+
+
+def test_ts_helper_bad_input():
+    """_ts() must return a datetime even for bad input and log a warning."""
+    from src.storage.writer import _ts
+
+    result = _ts("not-a-timestamp")
+    assert isinstance(result, datetime)
+
+    result2 = _ts(None)
+    assert isinstance(result2, datetime)
+
+
+def test_ts_helper_valid_inputs():
+    """_ts() must pass through datetime and pd.Timestamp unchanged."""
+    from src.storage.writer import _safe_float, _ts
+
+    now = datetime.now()
+    assert _ts(now) == now
+    assert _ts(pd.Timestamp("2024-01-01")) == datetime(2024, 1, 1)
+
+    # _safe_float: numpy NaN / inf must return None
+    assert _safe_float(float("nan")) is None
+    assert _safe_float(float("inf")) is None
+    assert _safe_float(None) is None
+    assert _safe_float("nan") is None
+    assert abs(_safe_float(42.0) - 42.0) < 1e-9
+    assert abs(_safe_float("3.14") - 3.14) < 1e-9
+
+
+def test_sqlite_db_init():
+    """Database.init() must select aiosqlite URL when use_sqlite=True."""
+    import os
+    os.environ["DB_USE_SQLITE"] = "true"
+
+    from src.config.settings import DatabaseSettings
+    s = DatabaseSettings()
+    assert s.use_sqlite is True
+    assert "aiosqlite" in s.async_url
 
 
 # ---------------------------------------------------------------------------

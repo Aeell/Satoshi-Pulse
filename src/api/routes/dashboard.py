@@ -22,7 +22,6 @@ router = APIRouter()
 async def get_overview(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """High-level market snapshot."""
     now = datetime.utcnow()
-    cutoff = now - timedelta(hours=1)
 
     # Latest BTC ticker
     result = await db.execute(

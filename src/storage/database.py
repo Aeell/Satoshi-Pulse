@@ -34,12 +34,9 @@ class Database:
     def init(self) -> None:
         async_url = self.settings.database.async_url
 
-        if self.is_sqlite:
-            connect_args = {"check_same_thread": False}
-            poolclass = NullPool
-        else:
-            connect_args = {}
-            poolclass = None
+        # aiosqlite manages its own thread; check_same_thread is a sync-sqlite arg only.
+        connect_args: dict = {}
+        poolclass = NullPool if self.is_sqlite else None
 
         self._engine = create_async_engine(
             async_url,
@@ -101,9 +98,15 @@ class Database:
             logger.warning("Hypertables not supported in SQLite mode")
             return
 
-        await self._engine.execute(
-            f"SELECT create_hypertable('{table_name}', '{time_column}', if_not_exists => TRUE);"
-        )
+        from sqlalchemy import text
+
+        async with self._engine.begin() as conn:
+            await conn.execute(
+                text(
+                    f"SELECT create_hypertable('{table_name}', '{time_column}',"
+                    " if_not_exists => TRUE);"
+                )
+            )
         logger.info(f"Hypertable created: {table_name}")
 
     async def setup_timescale(self) -> None:
@@ -111,7 +114,10 @@ class Database:
             logger.warning("Timescale extensions not supported in SQLite mode")
             return
 
-        await self._engine.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
+        from sqlalchemy import text
+
+        async with self._engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
         logger.info("TimescaleDB extension enabled")
 
 

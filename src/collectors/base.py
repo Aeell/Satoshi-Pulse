@@ -93,22 +93,26 @@ class CollectorBase(ABC):
                 response = await client.get(endpoint, params=params)
                 response.raise_for_status()
                 return response.json()
-            except httpx.RateLimitException:
-                wait_time = self.rate_limit * (2**attempt)
-                logger.warning(f"Rate limited, waiting {wait_time}s")
-                await asyncio.sleep(wait_time)
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429:
-                    wait_time = self.rate_limit * (2**attempt)
-                    logger.warning(f"Rate limited (HTTP 429), waiting {wait_time}s")
+                    # Respect Retry-After header when present, else exponential back-off
+                    retry_after = e.response.headers.get("Retry-After")
+                    wait_time = float(retry_after) if retry_after else self.rate_limit * (2**attempt)
+                    logger.warning(f"{self.name}: rate-limited, waiting {wait_time:.0f}s")
                     await asyncio.sleep(wait_time)
                 else:
                     raise
+            except httpx.RequestError as e:
+                if attempt == 2:
+                    raise
+                wait_time = 2**attempt
+                logger.warning(f"{self.name}: request error, retrying in {wait_time}s: {e}")
+                await asyncio.sleep(wait_time)
             except Exception as e:
                 if attempt == 2:
                     raise
                 wait_time = 2**attempt
-                logger.warning(f"Error, retrying in {wait_time}s: {e}")
+                logger.warning(f"{self.name}: unexpected error, retrying in {wait_time}s: {e}")
                 await asyncio.sleep(wait_time)
         raise RuntimeError("Max retries exceeded")
 

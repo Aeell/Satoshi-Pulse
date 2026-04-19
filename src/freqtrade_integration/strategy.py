@@ -22,8 +22,6 @@ class SatoshiCompositeStrategy(IStrategy):
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        threshold = self.params.get("buy_threshold", 60)
-
         dataframe.loc[
             (dataframe["rsi"] < 35) & (dataframe["close"] > dataframe["sma_21"]),
             "enter_long",
@@ -32,8 +30,6 @@ class SatoshiCompositeStrategy(IStrategy):
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        threshold = self.params.get("sell_threshold", 40)
-
         dataframe.loc[
             (dataframe["rsi"] > 65) | (dataframe["close"] < dataframe["sma_21"]),
             "exit_long",
