@@ -82,8 +82,12 @@ make test                    # pytest tests/ -v
 pytest tests/test_core.py -k fear_greed -v   # one test
 ```
 
-The suite uses `pytest-asyncio` in `auto` mode (see `pyproject.toml`). When
-adding async tests, just write `async def test_...()` — no decorator needed.
+The suite currently ships **13 tests** in `tests/test_core.py`, all passing
+with **0 warnings** and **0 lint errors**. It uses `pytest-asyncio` in `auto`
+mode (see `pyproject.toml`); when adding async tests, just write
+`async def test_...()` — no decorator needed. Use `asyncio.run()` rather than
+the deprecated `asyncio.get_event_loop()` when you need to drive an async
+helper from a sync test.
 
 **Regression-first policy:** when you fix a bug, add the failing test in
 `tests/test_core.py` (or a new `tests/test_<area>.py`) **before** the fix, and
@@ -154,6 +158,11 @@ Rules:
 
 - **Do not** open your own `httpx.AsyncClient` — use `self._get()` /
   `self._post()` so you inherit the 3-retry + 429 back-off logic.
+- If you genuinely need a raw client (e.g. non-GET flows, streaming), use
+  `async with self._session() as client:`. **Never** do
+  `async with self._get_client() as client:` — `_get_client()` returns a
+  plain `httpx.AsyncClient` and is **not** an async context manager. This
+  footgun has already caused four separate regressions (see `AGENTS.md` §9).
 - Return an **empty DataFrame** (not `None`) when there is no data.
 - The `name` attribute is how the writer routes rows — keep it stable.
 
@@ -231,16 +240,33 @@ workflow. Until then, flag schema changes clearly in your PR description.
 
 ## 7. Frontend (`dashboard/`)
 
+### Dashboard development
+
+The dashboard is a standalone npm workspace. It is **not** installed by
+`pip install -e ".[dev]"` — you must run `npm install` inside `dashboard/`
+at least once before `npm run dev`, otherwise you'll hit a blank page with
+module-resolution errors in the browser console.
+
 ```bash
 cd dashboard
-npm install
+npm install        # required on a fresh clone, and after any package.json change
 npm run dev        # http://localhost:3000
 npm run build
 npm run lint
 ```
 
-- Stack: React 18 + Vite + TypeScript + Tremor + TanStack Query + Zustand.
-- API calls go to `DASHBOARD_API_URL` (default `http://localhost:8000`).
+Vite is configured to proxy `/api/*` to the FastAPI backend on
+`http://localhost:8000`, so start the API first (`make run-full` or
+`make run-api`) in another terminal. You can override the target with
+`DASHBOARD_API_URL`.
+
+- Stack: React 18 + Vite + TypeScript + **`@tremor/react`** + TanStack Query
+  + Zustand + React Router v6.
+- All API calls go through the typed helpers in `dashboard/src/api.ts`; every
+  page is a `useQuery` with an auto-refresh interval — don't `fetch()`
+  directly from components.
+- Layout is driven by `Layout.tsx` + `<Outlet />` (React Router v6 pattern),
+  dark theme by default.
 - Keep components typed; avoid `any` unless interoperating with untyped libs.
 
 ---

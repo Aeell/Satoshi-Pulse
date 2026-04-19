@@ -237,6 +237,36 @@ Key local-dev toggle: **`DB_USE_SQLITE=true`** avoids needing PostgreSQL.
   `CollectorBase._get()` now does exponential back-off up to 3 attempts.
 - **SQLite vs Postgres URL selection** is driven purely by `DB_USE_SQLITE`;
   previously it tried to connect to Postgres even when SQLite was requested.
+- **`httpx.RateLimitException` does not exist** — `CollectorBase._get()` was
+  catching a non-existent exception class. Now catches `httpx.HTTPStatusError`
+  for HTTP 429 responses and parses the `Retry-After` header for smarter
+  back-off (falls back to exponential if absent).
+- **Deprecated `engine.execute()`** in `database.py` `create_hypertable()` /
+  `setup_timescale()` — replaced with `async with engine.begin() as conn:` +
+  `await conn.execute(text(...))`, which is the SQLAlchemy 2.0 async pattern.
+- **Invalid `check_same_thread: False`** passed to `aiosqlite` — that kwarg is
+  only valid for sync `sqlite3`. Removed from the async engine creation in
+  `database.py`. Covered by `test_sqlite_db_init`.
+- **`writer._ts()` silently returned `datetime.now()`** on bad/unparseable
+  inputs, producing fake "now" timestamps. It now `logger.warning`s and still
+  falls back, so corrupted rows are visible in the logs. Covered by
+  `test_ts_helper_bad_input` and `test_ts_helper_valid_inputs`.
+- **`writer._safe_float()` did not handle `math.nan` / `math.inf`** — these
+  slipped through `float()` and poisoned numeric columns. Now explicitly
+  rejected via `math.isnan` / `math.isinf`.
+- **`writer._write_ccxt()` index misalignment** — used `df.get(col)` which
+  returned unaligned Series and led to wrong row data. Fixed with a proper
+  boolean mask over the DataFrame.
+- **`persist_dataframe()` swallowed tracebacks** — used `logger.error(...)`,
+  which hides the stack. Switched to `logger.exception(...)`.
+- **Async-context misuse of `_get_client()`** in `FearGreedCollector`,
+  `CryptoPanicCollector`, `WhaleAlertCollector` and `MessariCollector` — all
+  four were doing `async with self._get_client() as client:`, but
+  `_get_client()` returns a plain `httpx.AsyncClient` (not an async context
+  manager). Replaced with `self._session()`, which is the correct helper.
+- **Signal strength clamp** — `signal_generator.py` could produce
+  `strength == 0` at boundary scores. Output is now clamped via
+  `max(1, min(5, ...))` so strength is always in `[1, 5]`.
 
 ---
 
@@ -248,11 +278,17 @@ Key local-dev toggle: **`DB_USE_SQLITE=true`** avoids needing PostgreSQL.
 - Writer routing for all currently-used collectors
 - Scheduler wiring all enabled collectors
 - FastAPI with dashboard / signals / status routers + Swagger
-- React + Vite + Tremor dashboard
+- React + Vite + `@tremor/react` dashboard — **fully wired**: typed fetch
+  helpers in `dashboard/src/api.ts`, all 5 pages driven by
+  `@tanstack/react-query` with live data + auto-refresh intervals, dark-themed
+  `Layout.tsx` sidebar using React Router v6 `<Outlet />`
 - SQLite zero-config local mode (`make run-full`)
 - Docker Compose stack with TimescaleDB
 - Ruff + pytest + Makefile + `.env.example`
-- Core regression test suite
+- Core regression test suite — **13/13 passing**, 0 warnings, 0 lint errors
+  (added `test_ts_helper_bad_input`, `test_ts_helper_valid_inputs`,
+  `test_sqlite_db_init`; migrated from deprecated `asyncio.get_event_loop()`
+  to `asyncio.run()`)
 
 ## 11. What still needs work ⚠️
 
@@ -272,8 +308,12 @@ Key local-dev toggle: **`DB_USE_SQLITE=true`** avoids needing PostgreSQL.
   nothing yet writes them to `TradingSignal` automatically; the API currently
   reads whatever is inserted manually (or via `POST /api/signals/`).
 - **Dashboard auth** — no authentication layer; OK for local dev, not for prod.
-- **Rate-limit header awareness** — retry is blind exponential; ideally we
-  parse `Retry-After`.
+- **Dashboard install step** — `npm install` inside `dashboard/` is still
+  required before `npm run dev`; no postinstall hook wires this from the repo
+  root.
+- **Rate-limit header awareness** — `Retry-After` is parsed in
+  `CollectorBase._get()`, but collectors that use `self._session()` directly
+  (for non-GET / custom flows) still fall back to blind exponential back-off.
 - **Docs** — per-module docstrings are sparse in `analysis/` and
   `freqtrade_integration/`.
 
@@ -288,6 +328,10 @@ Key local-dev toggle: **`DB_USE_SQLITE=true`** avoids needing PostgreSQL.
   collectors in `.env`).
 - **Collectors must be idempotent** — respect the unique constraints in
   `models.py`.
+- **Never use `_get_client()` as an async context manager** — it returns a
+  plain `httpx.AsyncClient`. For ad-hoc requests inside a collector, always
+  use `async with self._session() as client:` (the proper helper on
+  `CollectorBase`).
 - **Use `ruff`** for formatting and linting (`make format`, `make lint`).
 - **Keep `AGENTS.md`, `README.md`, `CONTRIBUTING.md` in sync** — if you add a
   collector, update §4 here, the README table, and the "adding a collector"
@@ -306,6 +350,7 @@ Key local-dev toggle: **`DB_USE_SQLITE=true`** avoids needing PostgreSQL.
 | `HTTP 401` from CoinMarketCap / Coinalyze / WhaleAlert | Add the API key or set `COLLECTOR_<NAME>_ENABLED=false` |
 | Scheduler silent / no rows | Check `/api/status/collectors` — look at `last_error` |
 | Dashboard cannot reach API | Set `DASHBOARD_API_URL=http://localhost:8000` |
+| Dashboard blank page / JS errors | Run `npm install` in `dashboard/`, then `npm run dev` |
 | pandas-ta install fails on Python 3.12 | Use Python 3.11 or install the pre-release wheel |
 
 ---
