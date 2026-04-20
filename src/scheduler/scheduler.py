@@ -110,6 +110,13 @@ class Scheduler:
         if s.coinmetrics_enabled:
             collectors.append(CoinMetricsCollector(interval=s.coinmetrics_interval))
 
+        # Add safety checks for API key requirements
+        for collector in collectors:
+            if hasattr(collector, 'api_key_required') and collector.api_key_required:
+                if not getattr(self.settings, collector.api_key_env_var, None):
+                    logger.warning(f"{collector.name} requires API key. Disabling.")
+                    collectors.remove(collector)
+
         return collectors
 
     async def _run_collector(self, collector: CollectorBase) -> None:

@@ -46,7 +46,13 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    try:
+        async with db.session() as session:
+            await session.execute("SELECT 1")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
 
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])

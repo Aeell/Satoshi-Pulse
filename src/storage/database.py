@@ -78,7 +78,7 @@ class Database:
     async def create_tables(self) -> None:
         if not self._engine:
             self.init()
-
+        
         async with self._engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
